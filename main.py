@@ -1,21 +1,12 @@
-import flet as ft
-
+from Settings.Settings import *
 
 def main(page: ft.Page):
     page.title = "Калькулятор Чека Блюд"
     page.theme_mode = ft.ThemeMode.LIGHT
-    page.window_width = 800
-    page.window_height = 600
+    page.window_width = WIDTH
+    page.window_height = HEIGHT
 
-    # Меню блюд
-    menu_items = {
-        "Пицца Маргарита": 15.00,
-        "Паста Карбонара": 12.50,
-        "Салат Цезарь": 9.00,
-        "Суп Том Ям": 14.00,
-        "Кофе Капучино": 3.50,
-        "Чизкейк": 6.00
-    }
+
 
     receipt_data = []
 
@@ -51,9 +42,20 @@ def main(page: ft.Page):
         receipt_data.clear()
         update_receipt()
 
-    # Создаем меню без использования сложных модулей border/margin
+    def confirmPaymentDialog(e):
+        confirmDialog.open = True
+        page.update()
+
+    def confirmPayment(e):
+        clear_receipt(e)
+        confirmDialog.open = False
+        clear_receipt(e)
+
+    def cancelPayment(e):
+        confirmDialog.open = False
+
     menu_column = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True)
-    for name, price in menu_items.items():
+    for name, price in menu.items():
         menu_column.controls.append(
             ft.Container(
                 content=ft.Row(
@@ -72,17 +74,32 @@ def main(page: ft.Page):
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                 ),
                 padding=10,
-                # Вместо сложных классов используем простые числа и логические значения:
                 animate_opacity=True,
-                border_radius=8  # Просто число, без .all()
+                border_radius=8
             )
         )
 
-    # Собираем главный экран (также убраны все сложные border)
+    confirmDialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Подтверждение оплаты"),
+        content=ft.Text("Вы уверены, что хотите оплатить заказ?"),
+        actions=[
+            ft.TextButton("Отмена", on_click=cancelPayment),
+            ft.TextButton("Подтвердить", on_click=confirmPayment)
+        ]
+    )
+
+    confirmPaymentBtn = ft.Button(
+        content="Оплатить",
+        bgcolor=ft.Colors.YELLOW,
+        width=200,
+        height=50,
+        on_click=confirmPaymentDialog
+    )
+
     page.add(
         ft.Row(
             [
-                # Левая колонка - Меню
                 ft.Container(
                     content=ft.Column([
                         ft.Text("Меню блюд", size=22, weight=ft.FontWeight.BOLD),
@@ -104,7 +121,8 @@ def main(page: ft.Page):
                         ft.Divider(),
                         receipt_column,
                         ft.Divider(),
-                        total_text
+                        total_text,
+                        ft.Row([confirmPaymentBtn], alignment=ft.MainAxisAlignment.END)
                     ]),
                     expand=1,
                     padding=20,
@@ -115,6 +133,8 @@ def main(page: ft.Page):
             expand=True
         )
     )
+
+    page.overlay.append(confirmDialog)
 
 
 if __name__ == "__main__":
