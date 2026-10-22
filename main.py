@@ -1,4 +1,5 @@
 from Settings.Settings import *
+import flet as ft
 from Classes.Checks import Checks
 
 
@@ -12,10 +13,14 @@ def main(page: ft.Page):
     currentPromocodeDiscount = 1
     currentPromocode = str()
 
+    # Т1: Переменная для хранения процента чаевых
+    tip_percentage = 0
+
     receipt_column = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True)
     total_text = ft.Text("Итого: 0.00 руб.", size=20, weight=ft.FontWeight.BOLD)
 
     def update_receipt():
+        nonlocal tip_percentage
         receipt_column.controls.clear()
         total_price = 0.0
         for item in receipt_data:
@@ -31,7 +36,8 @@ def main(page: ft.Page):
             total_price += item["price"]
             total_price *= currentPromocodeDiscount
 
-        total_text.value = f"Итого: {total_price:.2f} руб."
+        final_total = total_price * (1 + tip_percentage / 100)
+        total_text.value = f"Итого: {final_total:.2f} руб."
         page.update()
 
     def add_to_receipt(e):
@@ -41,6 +47,9 @@ def main(page: ft.Page):
         update_receipt()
 
     def clear_receipt(e):
+        nonlocal tip_percentage
+        tip_percentage = 0
+        tip_radio_group.value = "0"
         receipt_data.clear()
         update_receipt()
 
@@ -106,6 +115,23 @@ def main(page: ft.Page):
         ]
     )
 
+    def change_tips(e):
+        nonlocal tip_percentage
+        tip_percentage = int(e.control.value)
+        update_receipt()
+
+    tip_radio_group = ft.RadioGroup(
+        content=ft.Row([
+            ft.Text("Чаевые:", size=16, weight=ft.FontWeight.BOLD),
+            ft.Radio(value="0", label="0%"),
+            ft.Radio(value="5", label="5%"),
+            ft.Radio(value="10", label="10%"),
+            ft.Radio(value="15", label="15%"),
+        ], alignment=ft.MainAxisAlignment.START),
+        value="0",
+        on_change=change_tips
+    )
+
     confirmPaymentBtn = ft.Button(
         content="Оплатить",
         bgcolor=ft.Colors.YELLOW,
@@ -135,7 +161,6 @@ def main(page: ft.Page):
                     border_radius=10
                 ),
 
-                # Правая колонка - Чек
                 ft.Container(
                     content=ft.Column([
                         ft.Row([
@@ -145,6 +170,10 @@ def main(page: ft.Page):
                         ft.Divider(),
                         receipt_column,
                         ft.Divider(),
+
+
+                        tip_radio_group,
+
                         total_text,
                         ft.Row([promocodeField, confirmPaymentBtn], alignment=ft.MainAxisAlignment.END)
                     ]),
