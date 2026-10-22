@@ -1,5 +1,6 @@
 from Settings.Settings import *
 import flet as ft
+from Classes.Checks import Checks
 
 def main(page: ft.Page):
     page.title="Калькулятор Чека Блюд"
