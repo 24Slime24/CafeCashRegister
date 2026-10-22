@@ -1,5 +1,6 @@
 from Settings.Settings import *
 import flet as ft
+from Classes.Checks import Checks
 
 
 def main(page: ft.Page):
@@ -9,6 +10,8 @@ def main(page: ft.Page):
     page.window_height = HEIGHT
 
     receipt_data = []
+    currentPromocodeDiscount = 1
+    currentPromocode = str()
 
     # Т1: Переменная для хранения процента чаевых
     tip_percentage = 0
@@ -20,7 +23,6 @@ def main(page: ft.Page):
         nonlocal tip_percentage
         receipt_column.controls.clear()
         total_price = 0.0
-
         for item in receipt_data:
             receipt_column.controls.append(
                 ft.Row(
@@ -32,6 +34,7 @@ def main(page: ft.Page):
                 )
             )
             total_price += item["price"]
+            total_price *= currentPromocodeDiscount
 
         final_total = total_price * (1 + tip_percentage / 100)
         total_text.value = f"Итого: {final_total:.2f} руб."
@@ -55,12 +58,27 @@ def main(page: ft.Page):
         page.update()
 
     def confirmPayment(e):
-        clear_receipt(e)
         confirmDialog.open = False
+
+        check = Checks(receipt_data, currentPromocode, currentPromocodeDiscount)
+        check.toTxt()
+
         clear_receipt(e)
 
     def cancelPayment(e):
         confirmDialog.open = False
+
+    def checkPromocode(e):
+        nonlocal currentPromocode, currentPromocodeDiscount
+        currentPromocode = e.control.value
+        if currentPromocode == "TEEN10":
+            currentPromocodeDiscount = 1 + pricingScenarios["TEEN10"]
+            promocodeField.prefix_icon = ft.Icons.CHECK
+            update_receipt()
+        else:
+            currentPromocodeDiscount = 1
+            promocodeField.prefix_icon = ft.Icons.CLOSE
+            update_receipt()
 
     menu_column = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True)
     for name, price in menu.items():
@@ -122,6 +140,13 @@ def main(page: ft.Page):
         on_click=confirmPaymentDialog
     )
 
+    promocodeField = ft.TextField(
+        label="Введите промокод",
+        prefix_icon=ft.Icons.CLOSE,
+        width=400,
+        on_change=checkPromocode
+    )
+
     page.add(
         ft.Row(
             [
@@ -150,7 +175,7 @@ def main(page: ft.Page):
                         tip_radio_group,
 
                         total_text,
-                        ft.Row([confirmPaymentBtn], alignment=ft.MainAxisAlignment.END)
+                        ft.Row([promocodeField, confirmPaymentBtn], alignment=ft.MainAxisAlignment.END)
                     ]),
                     expand=1,
                     padding=20,
