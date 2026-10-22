@@ -60,7 +60,7 @@ def main(page: ft.Page):
     def confirmPayment(e):
         confirmDialog.open = False
 
-        check = Checks(receipt_data, currentPromocode, currentPromocodeDiscount)
+        check = Checks(receipt_data, currentPromocode, currentPromocodeDiscount, tip_percentage)
         check.toTxt()
 
         clear_receipt(e)
