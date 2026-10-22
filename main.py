@@ -1,9 +1,9 @@
 from Settings.Settings import *
 import flet as ft
-
+import random
 
 def main(page: ft.Page):
-    page.title = "Калькулятор Чека Блюд"
+    page.title="Калькулятор Чека Блюд"
     page.theme_mode = ft.ThemeMode.DARK
     page.window_width = WIDTH
     page.window_height = HEIGHT
