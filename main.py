@@ -70,6 +70,10 @@ def main(page: ft.Page):
 
     def confirmPayment(e):
         confirmDialog.open = False
+
+        check = Checks(receipt_data, currentPromocode, currentPromocodeDiscount, tip_percentage)
+        check.toTxt()
+
         clear_receipt(e)
         # Создаем и открываем уведомление способом для старых версий Flet:
         page.snack_bar = ft.SnackBar(ft.Text("Заказ успешно оплачен!"), bgcolor=ft.Colors.GREEN_700)
